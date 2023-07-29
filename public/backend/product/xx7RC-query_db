@@ -1,0 +1,104 @@
+check db merchant
+
+check giao giao dịch thanh toán đối tác qua merchant
+SELECT
+    *
+FROM MERCHANT_GW.trans_bankplus where request_id = '190418326573048';
+BILLING_CODE là  mã KH 
+VIETTEL_BANK_CODE LÀ Kênh
+cái process_code 300000 là truy vấn ạ
+
+cái 300001 là thanh toán ạ
+
+
+Lấy ra TRANS_CP_ID truy vấn bảng trans_cp
+
+
+SELECT
+    *
+FROM MERCHANT_GW.trans_cp where trans_cp_id = '18790300664356';
+
+DB Bankplus
+SELECT
+*
+FROM business_config where command = 'MAKE_CUST_PROFILE';
+
+select * from CORE.gw_lst_mapping_error_code where partner_error_code like '%PROCESSING%';
+
+select distinct partner_id from CORE.gw_lst_mapping_error_code ;
+
+select * from business_config where command='CHECK_TRANSACTION';
+
+select * from CORE.gw_lst_mapping_error_code where error_code='605' and partner_id='CHAIN';
+
+
+SELECT
+*
+FROM business_config where command = 'CANCEL_TELECHARGE_VT';
+
+SELECT
+*
+FROM trans_daily_his where request_id = '190415086174046';
+-----------
+KPP
+SELECT
+*
+FROM bankplus.trans_gw_bccs where command_id like '190414674787780%';
+
+SELECT
+*
+FROM tpp_trans_daily_his where error_code = '605'
+and correct_code = '99' and request_date > sysdate -5 and correct_source is NULL;
+
+SELECT
+*
+FROM tpp_trans_daily_his where request_id = '190415086174046';
+SELECT
+*
+FROM trans_gw_bccs where command_id like '190417690604031%';
+
+
+SELECT
+*
+FROM payment_trans_his where request_id = '190415086174046';
+
+
++ check user với sđt
+DB bankplus
+câu lệnh: select * from sale.staff where tel like '%964025697';
+
++ check đối tác mua thẻ cào viettel
+SELECT
+*
+FROM tpp_trans_daily_his where order_id = 'Fpt_33687204';
+
+
++ luồng thu hộ 
+1.       GD tại quầy khi hạch toán gọi sang BCCS để trừ tiền/lên công nợ.
+
+2.       Thành công thì thực hiện tiếp gọi sang egate (lưu dữ liệu bảng core.trans_payment_service) sau đó egate gửi bản tin sang merchant,
+
+3.       Merchant gửi sang đối tác. Rồi lại nhận kết quả từ đối tác trả về cho client và đến WEB.
+
+4.        WEB xử lý nếu thành công thì nhắn tin, thất bại thì hoàn lại tiền cho kênh, timeout thì đợi đối soát hoặc tiến Trình truy vấn kết quả.
+
++ Tra cứu lịch sử đang có 2 luồng:
+
+- Với giao dịch trong ngày: tra cứu trực tiếp trong database
+
+- Với giao dịch ngoài ngày: gọi sang API của bên BI để tra cứu
+ + truy vấn nạp tiền từ tài khoản ngân hàng sang bccs check ở egate gửi sang ngân hàng 
+ table trans_gw ở db bankplus
+ 
+ +Nó là giao dịch timeout 
+
+1.	Select trong bảng bccs_trans_gw trên DB của Mobileservice các giao dịch W04
+2.	Select trong bảng tpp_trans_dailyhis và payment_trans_his với các giao dịch tương ứng
+a.	Nếu không tồn tại chứng tỏ lỗi giao tiếp giữa mobile servie và core -> cần xem log
+b.	Nếu có tồn tại -> kiểm tra xem trạng thái mã lỗi là gì, thường là 605,32,650
+i.	Nếu nằm trong bảng tpp_trans_daily_his thì kiểm tra đã gửi sang bccs chưa (bảng trans_gw_bccs) -> xem thời gian request, response
+ii.	Nếu trong bảng payment_trans_his thì kiểm tra gửi sang bccs chưa ? nếu có rồi và kết quả là thành công thì check trên merchant
+
+ 
+ 
+ 
